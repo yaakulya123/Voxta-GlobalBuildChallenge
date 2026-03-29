@@ -160,7 +160,7 @@ export function AuthFormSplitScreen({
                               }`}
                             >
                               <Headphones className="w-5 h-5" />
-                              <span className="text-sm font-medium">Hearing</span>
+                              <span className="text-sm font-medium">Typical</span>
                             </button>
                             <button
                               type="button"
@@ -172,7 +172,7 @@ export function AuthFormSplitScreen({
                               }`}
                             >
                               <Video className="w-5 h-5" />
-                              <span className="text-sm font-medium">Deaf / HoH</span>
+                              <span className="text-sm font-medium">Person of Determination</span>
                             </button>
                           </div>
                         </FormControl>

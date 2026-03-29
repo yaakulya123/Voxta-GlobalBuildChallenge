@@ -1,5 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import { ClosedCaptions } from '../ui/ClosedCaptions';
+import { ASLPanel } from '../ui/ASLPanel';
 import { User } from 'lucide-react';
 
 interface FocusVideoProps {
@@ -8,14 +9,16 @@ interface FocusVideoProps {
   captionsText?: string;
   isTranslating?: boolean;
   stream?: MediaStream | null;
+  aslText?: string;
 }
 
-export const FocusVideo: React.FC<FocusVideoProps> = ({ 
-  name, 
-  isSpeaking, 
+export const FocusVideo: React.FC<FocusVideoProps> = ({
+  name,
+  isSpeaking,
   captionsText = "",
   isTranslating = false,
-  stream
+  stream,
+  aslText = "",
 }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -37,11 +40,12 @@ export const FocusVideo: React.FC<FocusVideoProps> = ({
             <h3 className="text-white/40 font-medium tracking-wide">Waiting for peer stream...</h3>
          </div>
       ) : (
-         <video 
+         <video
            ref={videoRef}
            autoPlay
            playsInline
            className="absolute inset-0 w-full h-full object-cover"
+           style={{ transform: 'scaleX(-1)' }}
          />
       )}
       
@@ -58,10 +62,15 @@ export const FocusVideo: React.FC<FocusVideoProps> = ({
         </div>
       </div>
 
-      {/* Massive Closed Captions Overlay - The core feature */}
+      {/* ASL Translation Window — top-right corner (TV interpreter style) */}
+      <div className="absolute top-4 right-4 z-20">
+        <ASLPanel text={aslText} />
+      </div>
+
+      {/* Closed Captions — bottom center */}
       <div className="absolute bottom-6 md:bottom-12 w-full z-20 flex justify-center pb-safe">
-        <ClosedCaptions 
-          text={captionsText} 
+        <ClosedCaptions
+          text={captionsText}
           isTranslating={isTranslating}
         />
       </div>

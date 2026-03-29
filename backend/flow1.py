@@ -7,7 +7,7 @@ import io
 import asyncio
 from gtts import gTTS
 
-client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+client = anthropic.AsyncAnthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 
 ASL_SYSTEM_PROMPT = """You convert ASL gloss tokens into natural spoken English sentences.
 
@@ -30,7 +30,7 @@ Tokens: ["THANK", "YOU"] → "Thank you"
 
 async def gloss_to_sentence(tokens: list[str]) -> str:
     token_str = " ".join(tokens)
-    message = client.messages.create(
+    message = await client.messages.create(
         model="claude-haiku-4-5-20251001",
         max_tokens=100,
         system=ASL_SYSTEM_PROMPT,
@@ -61,3 +61,11 @@ async def process_gloss(tokens: list[str]) -> str:
     print(f"[Flow1] Gloss: {tokens} → Sentence: {sentence}")
     audio_b64 = await sentence_to_audio(sentence)
     return audio_b64
+
+
+async def process_gloss_full(tokens: list[str]) -> tuple[str, str]:
+    """Full pipeline: tokens → (natural English sentence, base64 audio)."""
+    sentence = await gloss_to_sentence(tokens)
+    print(f"[Flow1] Gloss: {tokens} → Sentence: {sentence}")
+    audio_b64 = await sentence_to_audio(sentence)
+    return sentence, audio_b64

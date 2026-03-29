@@ -2,6 +2,18 @@ import React from 'react';
 import { Mic, MicOff, Video, VideoOff, MonitorUp, MessageSquare, Copy } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
+const RecordSvg = ({ isRecording }: { isRecording: boolean }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+    {isRecording ? (
+      // Stop square when recording
+      <rect x="5" y="5" width="14" height="14" rx="2" />
+    ) : (
+      // Circle dot when idle
+      <circle cx="12" cy="12" r="8" />
+    )}
+  </svg>
+);
+
 // Simple blur icon fallback since lucide may not have BlurIcon
 const BlurSvg = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -17,11 +29,14 @@ interface BottomControlsProps {
   isChatOpen: boolean;
   isBlurOn: boolean;
   isScreenSharing: boolean;
+  isRecording: boolean;
+  recordingCountdown: number;
   onToggleMic: () => void;
   onToggleVideo: () => void;
   onToggleChat: () => void;
   onToggleBlur: () => void;
   onToggleScreenShare: () => void;
+  onToggleRecord: () => void;
   onLeave?: () => void;
 }
 
@@ -31,11 +46,14 @@ export const BottomControls: React.FC<BottomControlsProps> = ({
   isChatOpen,
   isBlurOn,
   isScreenSharing,
+  isRecording,
+  recordingCountdown,
   onToggleMic,
   onToggleVideo,
   onToggleChat,
   onToggleBlur,
   onToggleScreenShare,
+  onToggleRecord,
   onLeave,
 }) => {
 
@@ -92,12 +110,30 @@ export const BottomControls: React.FC<BottomControlsProps> = ({
           onClick={onToggleChat}
           label="Toggle Chat"
         />
-        <IconButton 
+        <IconButton
           customIcon={<BlurSvg />}
-          isActive={isBlurOn} 
+          isActive={isBlurOn}
           onClick={onToggleBlur}
           label={isBlurOn ? "Remove Blur" : "Blur Background"}
         />
+        {/* Record Sign button — visible always, glows red while recording */}
+        <button
+          onClick={onToggleRecord}
+          title={isRecording ? `Recording… ${recordingCountdown}s` : "Record Sign (or hold Closed Fist 2s)"}
+          className={cn(
+            "w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-200 border",
+            isRecording
+              ? "bg-red-600 border-red-400 animate-pulse"
+              : "bg-[#2B2E36] border-white/5 hover:bg-opacity-80"
+          )}
+        >
+          <RecordSvg isRecording={isRecording} />
+          {isRecording && (
+            <span className="absolute mt-8 text-[10px] text-red-300 font-mono leading-none">
+              {recordingCountdown}s
+            </span>
+          )}
+        </button>
       </div>
 
       {/* End Call */}
