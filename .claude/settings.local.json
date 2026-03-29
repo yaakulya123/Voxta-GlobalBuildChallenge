@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(venv/bin/pip install:*)",
+      "Bash(venv/bin/python -c \"import pkg_resources; print\\('ok'\\)\" 2>&1)",
+      "Bash(venv/bin/python -c \"import pkg_resources; print\\(''ok''\\)\")",
+      "Bash(venv/bin/uvicorn main:app --reload --port 8000 2>&1)",
+      "Bash(npm install:*)",
+      "Bash(curl -s --head \"http://www.lifeprint.com/asl101/fingerspelling/abc-gifs/a.gif\")"
+    ]
+  }
+}
