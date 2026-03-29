@@ -1,0 +1,58 @@
+@import "tailwindcss";
+
+@theme {
+  --color-app-bg: #1A1C23;
+  --color-panel-bg: #22252D;
+  --color-panel-border: rgba(255, 255, 255, 0.05);
+  --color-panel-hover: #2B2E36;
+  --color-primary-accent: #3B82F6;
+  --color-positive: #10B981;
+  --color-negative: #EF4444;
+  --font-sans: 'Outfit', 'Inter', sans-serif;
+}
+
+@layer base {
+  @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+
+  :root {
+    color-scheme: dark;
+  }
+  
+  body {
+    background-color: var(--color-app-bg);
+    color: #F8FAFC;
+    font-family: var(--font-sans);
+    margin: 0;
+    overflow-x: hidden;
+  }
+
+  /* Custom minimal scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.4);
+  }
+}
+
+@layer utilities {
+  .glass-panel {
+    background: var(--color-panel-bg);
+    border: 1px solid var(--color-panel-border);
+  }
+  
+  .text-glow {
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.4);
+  }
+
+  .caption-shadow {
+    text-shadow: 0px 4px 24px rgba(0, 0, 0, 0.9), 0px 2px 8px rgba(0, 0, 0, 0.8);
+  }
+}
