@@ -7,7 +7,7 @@ import { FocusVideo } from './video/FocusVideo';
 import { BottomControls } from './controls/BottomControls';
 import { Sidebar, type ChatMessage } from './layout/Sidebar';
 import { initSpeechRecognition } from '../lib/speechRecognition';
-import { initGestureDetector, detectGesture, setRecordTriggerCallback, captureLandmarks, type Landmark } from '../lib/gestureDetector';
+import { initGestureDetector, detectGesture, setRecordTriggerCallback, captureLandmarks, flushLetterBuffer, getLetterBuffer, type Landmark } from '../lib/gestureDetector';
 import { connect, send, onMessage, disconnect } from '../lib/socket.js';
 import {
   init as initWebRTC,
@@ -185,23 +185,55 @@ export default function CallRoom() {
     initGestureDetector();
   }, []);
 
-  // ── Gesture hold-detection loop (no live translation) ─────────────────
+  // ── Real-time ASL detection + hold-to-record trigger ──────────────────
   useEffect(() => {
     let animationFrameId: number;
+    let bufferCheckInterval: ReturnType<typeof setInterval>;
 
-    const holdLoop = () => {
-      if (webcamRef.current?.video) {
-        // detectGesture is called purely for its side effect of firing
-        // setRecordTriggerCallback when Closed_Fist is held 2s.
-        // We discard the returned tokens — no live translation.
-        detectGesture(webcamRef.current.video);
-      }
-      animationFrameId = requestAnimationFrame(holdLoop);
+    const emitTokens = (tokens: string[]) => {
+      if (tokens.length === 0) return;
+      setIsTranslating(true);
+      const text = tokens.join(' ');
+      setCaptionsText(text);
+      addMessage(`[ASL]: ${text}`, true);
+      // Send through gloss pipeline → Claude NLP → TTS for hearing peer
+      send({ type: 'gloss', room: roomId, tokens });
+      setTimeout(() => { setIsTranslating(false); setCaptionsText(''); }, 3000);
     };
 
-    animationFrameId = requestAnimationFrame(holdLoop);
-    return () => cancelAnimationFrame(animationFrameId);
-  }, []);
+    const gestureLoop = () => {
+      if (webcamRef.current?.video) {
+        // detectGesture handles both: real-time ASL classification AND hold-to-record
+        const tokens = detectGesture(webcamRef.current.video);
+        if (tokens.length > 0 && !isRecordingRef.current) {
+          emitTokens(tokens);
+        }
+
+        // Show live spelling buffer
+        if (!isRecordingRef.current) {
+          const buffer = getLetterBuffer();
+          if (buffer.length > 0) {
+            setCaptionsText(`Spelling: ${buffer}_`);
+          }
+        }
+      }
+      animationFrameId = requestAnimationFrame(gestureLoop);
+    };
+
+    // Periodically flush letter buffer into words
+    bufferCheckInterval = setInterval(() => {
+      if (!isRecordingRef.current) {
+        const flushed = flushLetterBuffer();
+        if (flushed.length > 0) emitTokens(flushed);
+      }
+    }, 500);
+
+    animationFrameId = requestAnimationFrame(gestureLoop);
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+      clearInterval(bufferCheckInterval);
+    };
+  }, [roomId]);
 
   // ── Web Speech API (hearing role only → captions + ASL for deaf peer) ──
   useEffect(() => {
