@@ -25,8 +25,7 @@ const FRAME_INTERVAL_MS = 200; // capture a frame every 200ms while recording
 export default function CallRoom() {
   const { roomId } = useParams<{ roomId: string }>();
   const [searchParams] = useSearchParams();
-  const role = searchParams.get('role') || 'hearing';
-  const myName = searchParams.get('name') || (role === 'deaf' ? 'Deaf User' : 'Hearing User');
+  const myName = searchParams.get('name') || 'User';
   const navigate = useNavigate();
 
   const [isMicOn, setIsMicOn] = useState(true);
@@ -86,22 +85,19 @@ export default function CallRoom() {
         switch (msg.type) {
           case 'joined':
             setStatus('Peer joined — starting call');
-            peerInfoRef.current = { name: msg.name, role: msg.role };
-            setPeerInfo({ name: msg.name, role: msg.role });
-            send({ type: 'peer_info', room: roomId, name: myName, role });
-            if (role === 'deaf') {
-              initWebRTC(localStreamRef.current!, (s: MediaStream) => setRemoteStream(s), sendSignal);
-              await createOffer();
-            }
+            peerInfoRef.current = { name: msg.name };
+            setPeerInfo({ name: msg.name, role: '' });
+            send({ type: 'peer_info', room: roomId, name: myName });
+            // First person to see a peer join initiates the call
+            initWebRTC(localStreamRef.current!, (s: MediaStream) => setRemoteStream(s), sendSignal);
+            await createOffer();
             break;
           case 'peer_info':
-            peerInfoRef.current = { name: msg.name, role: msg.role };
-            setPeerInfo({ name: msg.name, role: msg.role });
+            peerInfoRef.current = { name: msg.name };
+            setPeerInfo({ name: msg.name, role: '' });
             break;
           case 'offer':
-            if (role === 'hearing') {
-              initWebRTC(localStreamRef.current!, (s: MediaStream) => setRemoteStream(s), sendSignal);
-            }
+            initWebRTC(localStreamRef.current!, (s: MediaStream) => setRemoteStream(s), sendSignal);
             await handleOffer(msg.sdp);
             setStatus('Connected');
             break;
@@ -160,7 +156,7 @@ export default function CallRoom() {
         }
       });
 
-      send({ type: 'join', room: roomId, role, name: myName });
+      send({ type: 'join', room: roomId, name: myName });
       setStatus('Waiting for peer...');
     }
 
@@ -178,7 +174,7 @@ export default function CallRoom() {
       disconnect();
       closeRTC();
     };
-  }, [roomId, role, myName, sendSignal]);
+  }, [roomId, myName, sendSignal]);
 
   // ── MediaPipe init (for gesture hold-trigger only) ─────────────────────
   useEffect(() => {
@@ -235,10 +231,8 @@ export default function CallRoom() {
     };
   }, [roomId]);
 
-  // ── Web Speech API (hearing role only → captions + ASL for deaf peer) ──
+  // ── Web Speech API (all users — captions + relay to peers) ──
   useEffect(() => {
-    if (role !== 'hearing') return; // deaf users don't speak
-
     if (isMicOn && isCaptionsOn) {
       const recognition = initSpeechRecognition((text, isFinal) => {
         setCaptionsText(text);
@@ -423,10 +417,12 @@ export default function CallRoom() {
         method: "POST",
         headers: {
           "Authorization": "Bearer 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",
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          "HTTP-Referer": "http://localhost:5174",
+          "X-Title": "Voxta"
         },
         body: JSON.stringify({
-          model: "google/gemini-2.0-flash-001",
+          model: "google/gemini-2.5-flash",
           max_tokens: 1024,
           messages: [{ role: "user", content: prompt }]
         })
@@ -506,7 +502,7 @@ export default function CallRoom() {
       }
       mainFocusVideo={
         <FocusVideo
-          name={peerInfo ? `${peerInfo.name} (${peerInfo.role})` : "Waiting for peer..."}
+          name={peerInfo ? peerInfo.name : "Waiting for peer..."}
           isSpeaking={false}
           captionsText={captionsText}
           isTranslating={isTranslating}

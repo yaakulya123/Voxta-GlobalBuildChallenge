@@ -15,13 +15,12 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Loader2, Headphones, Video, Monitor } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 // Validation schema tailored for Voxta
 const formSchema = z.object({
   displayName: z.string().min(2, { message: "Name must be at least 2 characters." }),
   roomCode: z.string().min(1, { message: "Room Code is required." }),
-  role: z.enum(['hearing', 'deaf']),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -50,7 +49,6 @@ export function AuthFormSplitScreen({
     defaultValues: {
       displayName: "",
       roomCode: "",
-      role: "hearing",
     },
   });
 
@@ -134,47 +132,6 @@ export function AuthFormSplitScreen({
                             {...field}
                             disabled={isLoading}
                           />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </motion.div>
-
-                <motion.div variants={itemVariants}>
-                  <FormField
-                    control={form.control}
-                    name="role"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-white/70 block mb-3">Participation Role</FormLabel>
-                        <FormControl>
-                          <div className="grid grid-cols-2 gap-3">
-                            <button
-                              type="button"
-                              onClick={() => field.onChange('hearing')}
-                              className={`flex flex-col items-center justify-center gap-2 py-4 rounded-xl border transition-all ${
-                                field.value === 'hearing'
-                                  ? 'bg-blue-500/10 border-blue-500 text-white'
-                                  : 'bg-[#13151A] border-white/10 text-white/50 hover:bg-white/5'
-                              }`}
-                            >
-                              <Headphones className="w-5 h-5" />
-                              <span className="text-sm font-medium">Typical</span>
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => field.onChange('deaf')}
-                              className={`flex flex-col items-center justify-center gap-2 py-4 rounded-xl border transition-all ${
-                                field.value === 'deaf'
-                                  ? 'bg-blue-500/10 border-blue-500 text-white'
-                                  : 'bg-[#13151A] border-white/10 text-white/50 hover:bg-white/5'
-                              }`}
-                            >
-                              <Video className="w-5 h-5" />
-                              <span className="text-sm font-medium">Person of Determination</span>
-                            </button>
-                          </div>
                         </FormControl>
                         <FormMessage />
                       </FormItem>

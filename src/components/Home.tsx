@@ -4,9 +4,8 @@ import { AuthFormSplitScreen } from './ui/login';
 export const Home = () => {
   const navigate = useNavigate();
 
-  const handleLogin = async (data: { displayName: string, roomCode: string, role: 'hearing' | 'deaf' }) => {
-    // Navigate immediately to the room with the credentials
-    navigate(`/room/${data.roomCode}?role=${data.role}&name=${encodeURIComponent(data.displayName)}`);
+  const handleLogin = async (data: { displayName: string, roomCode: string }) => {
+    navigate(`/room/${data.roomCode}?name=${encodeURIComponent(data.displayName)}`);
   };
 
   return (
